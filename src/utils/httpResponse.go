@@ -3,7 +3,6 @@ package utils
 type ResponseFormat struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
-	Page    int         `json:"page"`
 	Data    interface{} `json:"data"`
 }
 
