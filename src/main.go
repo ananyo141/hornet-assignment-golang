@@ -24,6 +24,7 @@ func main() {
 
 	// Routes
 	routes.AuthRoutes(app)
+	routes.BookRoutes(app)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(utils.HttpResponse(true, "Server is running.", fiber.Map{}))

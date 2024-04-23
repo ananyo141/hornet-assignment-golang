@@ -1,4 +1,4 @@
-package controllers_auth
+package controllers
 
 import (
 	"backend/src/utils"
