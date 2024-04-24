@@ -10,9 +10,6 @@ import (
 func BookRoutes(app *fiber.App) {
 	bookRoutes := app.Group("/books")
 	bookRoutes.Get("/", middlewares.AuthRequired(), controllers.GetBooks)
-	// bookRoutes.Post("/", controllers.CreateBook)
-	// bookRoutes.Get("/:id", controllers.GetBook)
-	// bookRoutes.Put("/:id", controllers.UpdateBook)
-	// bookRoutes.Delete("/:id", controllers.DeleteBook)
-
+	bookRoutes.Post("/", middlewares.AuthRequired(), middlewares.AdminAccess(), controllers.AddBook)
+	bookRoutes.Delete("/:name", middlewares.AuthRequired(), middlewares.AdminAccess(), controllers.DeleteBook)
 }
