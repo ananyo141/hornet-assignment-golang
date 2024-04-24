@@ -1,0 +1,174 @@
+{
+	"info": {
+		"_postman_id": "571fb384-f913-4e2c-a198-63a13e6b28a3",
+		"name": "ScaleX Assignment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26692677"
+	},
+	"item": [
+		{
+			"name": "books",
+			"item": [
+				{
+					"name": "get books",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFuYW55byIsInVzZXJUeXBlIjoidXNlciIsIk1hcENsYWltcyI6bnVsbH0.5pks2H-VC9f_fEPOfmjF508OWyr5CFXyu-VtH2LEldc",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseurl}}/books",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"books"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add book",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accesstoken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "name",
+									"value": "A Study In Scarlet",
+									"type": "text"
+								},
+								{
+									"key": "author",
+									"value": "Sir Arthur Conan Doyle",
+									"type": "text"
+								},
+								{
+									"key": "publicationyear",
+									"value": "1887",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseurl}}/books/",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"books",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete book",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accesstoken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseurl}}/books/a%20study%20in%20scarlet",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"books",
+								"a%20study%20in%20scarlet"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ping server",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseurl}}/",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "ananyo",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "ananyo@email.com",
+							"type": "text"
+						},
+						{
+							"key": "isAdmin",
+							"value": "true",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseurl}}/auth/login",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
