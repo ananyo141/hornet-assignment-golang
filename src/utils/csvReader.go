@@ -5,14 +5,15 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
+
+	"time"
 
 	"github.com/go-playground/validator/v10"
-	"time"
 )
 
 var AdminBooksFilePath = "src/data/adminUser.csv"
 var UserBooksFilePath = "src/data/regularUser.csv"
-
 
 // Define a struct to hold book information
 type Book struct {
@@ -112,7 +113,7 @@ func BookExists(filePath string, newBook string) (bool, error) {
 	for _, record := range records {
 		if len(record) >= 3 {
 			name := record[0]
-			if name == newBook {
+			if strings.ToLower(name) == strings.ToLower(newBook) {
 				return true, nil // Book found.
 			}
 		}
@@ -153,7 +154,7 @@ func DeleteBook(filePath, bookName string) error {
 		}
 
 		// If the book name matches, skip writing this record (delete it).
-		if record[0] == bookName {
+		if strings.ToLower(record[0]) == strings.ToLower(bookName) {
 			bookDeleted = true
 			continue
 		}

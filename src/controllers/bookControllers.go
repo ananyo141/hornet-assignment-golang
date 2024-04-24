@@ -3,6 +3,7 @@ package controllers
 import (
 	"backend/src/utils"
 	"log"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -79,6 +80,7 @@ func DeleteBook(ctx *fiber.Ctx) error {
 	if bookName == "" {
 		return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, "Book name is required.", nil))
 	}
+	bookName = strings.Replace(bookName, "%20", " ", -1) // Replace %20 with space (if any)
 
 	exists, err := utils.BookExists(utils.UserBooksFilePath, bookName)
 	if err != nil {
