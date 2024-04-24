@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -12,11 +13,19 @@ import (
 	"backend/src/utils"
 )
 
-func main() {
+func init() {
+	// populate the environment variables
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println(err)
+		log.Println("No .env file loaded, reading from system environment variables, recheck all the environment variables are set.")
 	}
+	utils.JwtSecret = []byte(os.Getenv("JWT_KEY"))
+	utils.AdminBooksFilePath = os.Getenv("ADMIN_FILE")
+	utils.UserBooksFilePath = os.Getenv("REGULAR_FILE")
+}
+
+func main() {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: middlewares.ErrorHandler,
 	})

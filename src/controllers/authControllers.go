@@ -1,45 +1,22 @@
 package controllers
 
 import (
+	"backend/src/models"
 	"backend/src/utils"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
-var validate = validator.New()
-
-type User struct {
-	Name    string `validate:"required"`
-	Email   string `validate:"required,email"`
-	IsAdmin string `validate:"omitempty,oneof=true false"`
-}
-
-type ErrorResponse struct {
-	Error       bool
-	FailedField string
-	Tag         string
-	Value       interface{}
-}
 
 func Login(ctx *fiber.Ctx) error {
-	user := new(User)
+	user := new(models.User)
 	if err := ctx.BodyParser(user); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, err.Error(), nil))
 	}
 
-	validationErrors := []ErrorResponse{}
-	errs := validate.Struct(user)
+	errs := utils.Validate.Struct(user)
 	if errs != nil {
-		for _, err := range errs.(validator.ValidationErrors) {
-			var elem ErrorResponse
-			elem.FailedField = err.Field()
-			elem.Tag = err.Tag()
-			elem.Value = err.Value()
-			elem.Error = true
-			validationErrors = append(validationErrors, elem)
-		}
-
+		validationErrors := utils.NormalizeErrors(errs)
 		// Return if there are validation errors
 		if len(validationErrors) > 0 {
 			return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, "Unprocessable Entity", validationErrors))

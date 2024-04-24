@@ -1,15 +1,14 @@
 package controllers
 
 import (
+	"backend/src/models"
 	"backend/src/utils"
 	"log"
 	"strings"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
-var bookValidate = validator.New()
 
 func GetBooks(ctx *fiber.Ctx) error {
 	books, error := utils.LoadBooksFromCSV(utils.UserBooksFilePath)
@@ -30,24 +29,14 @@ func GetBooks(ctx *fiber.Ctx) error {
 }
 
 func AddBook(ctx *fiber.Ctx) error {
-	bookValidate.RegisterValidation("year", utils.YearValidation)
-	book := new(utils.Book)
+	book := new(models.Book)
 	if err := ctx.BodyParser(book); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, err.Error(), nil))
 	}
 
-	validationErrors := []ErrorResponse{}
-	errs := bookValidate.Struct(book)
+	errs := utils.Validate.Struct(book)
 	if errs != nil {
-		for _, err := range errs.(validator.ValidationErrors) {
-			var elem ErrorResponse
-			elem.FailedField = err.Field()
-			elem.Tag = err.Tag()
-			elem.Value = err.Value()
-			elem.Error = true
-			validationErrors = append(validationErrors, elem)
-		}
-
+		validationErrors := utils.NormalizeErrors(errs)
 		// Return if there are validation errors
 		if len(validationErrors) > 0 {
 			return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, "Unprocessable Entity", validationErrors))
@@ -60,6 +49,7 @@ func AddBook(ctx *fiber.Ctx) error {
 	// Check if the book already exists
 	exists, err := utils.BookExists(filePath, book.Name)
 	if err != nil {
+    log.Println(err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(utils.HttpResponse(false, "Failed to check if book exists.", nil))
 	}
 	if exists {

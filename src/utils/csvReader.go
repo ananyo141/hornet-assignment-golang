@@ -1,44 +1,19 @@
 package utils
 
 import (
+	"backend/src/models"
 	"encoding/csv"
 	"io"
 	"log"
 	"os"
 	"strings"
-
-	"time"
-
-	"github.com/go-playground/validator/v10"
 )
 
-var AdminBooksFilePath = "src/data/adminUser.csv"
-var UserBooksFilePath = "src/data/regularUser.csv"
-
-// Define a struct to hold book information
-type Book struct {
-	Name            string `json:"name" validate:"required"`
-	Author          string `json:"author" validate:"required"`
-	PublicationYear string `json:"publication_year" validate:"required,year"`
-}
-
-// Custom validation function for the publication year.
-func YearValidation(fl validator.FieldLevel) bool {
-	year := fl.Field().String()
-	layout := "2006" // Go's reference time format
-	parsedYear, err := time.Parse(layout, year)
-	if err != nil {
-		return false
-	}
-	currentYear := time.Now().Year()
-	if parsedYear.Year() >= 1000 && parsedYear.Year() <= currentYear {
-		return true
-	}
-	return false
-}
+var AdminBooksFilePath string
+var UserBooksFilePath string
 
 // Function to load books from the CSV file
-func LoadBooksFromCSV(filePath string) ([]Book, error) {
+func LoadBooksFromCSV(filePath string) ([]models.Book, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -54,13 +29,13 @@ func LoadBooksFromCSV(filePath string) ([]Book, error) {
 		return nil, err
 	}
 
-	var books []Book
+	var books []models.Book
 	for i, line := range lines {
 		if i == 0 { // Skip the header line
 			continue
 		}
 		if len(line) >= 3 {
-			books = append(books, Book{
+			books = append(books, models.Book{
 				Name:            line[0],
 				Author:          line[1],
 				PublicationYear: line[2],
@@ -71,7 +46,7 @@ func LoadBooksFromCSV(filePath string) ([]Book, error) {
 	return books, nil
 }
 
-func AddBookToCSV(filePath string, book Book) error {
+func AddBookToCSV(filePath string, book models.Book) error {
 	// Open the file in read-write mode, and create it if it does not exist.
 	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
