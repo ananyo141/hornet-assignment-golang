@@ -1,0 +1,15 @@
+services:
+  books-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DEPLOY=release
+    volumes:
+      - dataDirectory:/app/src/data/
+    restart: unless-stopped
+
+volumes:
+  dataDirectory:
