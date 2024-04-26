@@ -4,7 +4,7 @@ This document outlines the project, detailing the structure of the codebase, the
 
 ## Overview
 
-This project is a backend server application for a book management system. It supports two types of users: Admin and Regular users, each with distinct functionalities. The application is built to handle user authentication, book management (addition and deletion of books), and dynamically serve book lists based on user roles.
+This project is a backend server application for a book management system. It supports two types of users: Admin and Regular users, each with distinct functionalities. The application is built to handle user authentication, book management (addition and deletion of books).
 
 ## Project Structure
 
@@ -15,8 +15,8 @@ The project is organized as follows:
   - `middlewares/`: JWT authentication and authorization middleware.
   - `models/`: Data structures for users and books.
   - `routes/`: Route definitions for the application.
-  - `utils/`: Main logic related to csv operations and http responses
-- `data/`: Contains CSV files (`regularUser.csv` and `adminUser.csv`) for book data.
+  - `utils/`: Login related to jwt and http responses.
+  - `db/`: Operations related to database
 - `.env`: Environment variables for JWT secret and other configurations.
 - `main.go`: The entry point of the application.
 
@@ -25,7 +25,7 @@ The project is organized as follows:
 - **Error handling** with custom error handler
 - **Structured API response** for easy consumption (especially for typed languages like Dart, Rust)
 - Strict **validation** and **input sanitization**
-- Save books in `RegularUser.csv` for **persistent book records**
+- Save books in `PostgreSQL` for **persistent book records**
 - **Role based Auth** token middleware (only admin allowed to modify records)
 - **Dockerized** for total isolation from host system (files remain unchanged; **image size under 13mb** via multi-stage builds)
 - Clean codebase structure with **MVC architecture** with proper coding conventions according to best practices.
@@ -35,7 +35,7 @@ The project is organized as follows:
 - **Go**: The primary programming language used to build the application.
 - **GoFiber**: A high-performance HTTP framework used for building the API.
 - **JWT-go**: Library for generating and validating JSON Web Tokens.
-- **CSV**: Simple file storage mechanism to manage book data.
+- **gORM**: Easy way to communicate with PostgreSQL.
 
 ## Setup and Running the Application
 
@@ -51,7 +51,7 @@ The project is organized as follows:
 1. Go to project root and invoke
 
 ```bash
-$ docker compose up
+$ docker compose up -d
 ```
 
 #### Manual
@@ -74,3 +74,6 @@ $ ./main
 ```
 
 4. Import `postman_collection.json` given in the project root to test the endpoints.
+
+*NOTE:* Make sure to setup PostgreSQL and it's .env variable while setting up
+manually.
