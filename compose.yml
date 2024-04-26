@@ -1,5 +1,8 @@
 services:
   books-backend:
+    container_name: books-be
+    depends_on:
+      - books-db
     build:
       context: .
       dockerfile: Dockerfile
@@ -7,9 +10,11 @@ services:
       - "3000:3000"
     environment:
       - DEPLOY=release
-    volumes:
-      - dataDirectory:/app/src/data/
     restart: unless-stopped
 
-volumes:
-  dataDirectory:
+  books-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dockeruser
+      POSTGRES_PASSWORD: dbpassword
+      POSTGRES_DB: books-docker-db

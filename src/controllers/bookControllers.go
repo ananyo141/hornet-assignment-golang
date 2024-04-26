@@ -1,30 +1,25 @@
 package controllers
 
 import (
+	"backend/src/db"
 	"backend/src/models"
 	"backend/src/utils"
+	"errors"
+
+	"gorm.io/gorm"
 	"log"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
-
 func GetBooks(ctx *fiber.Ctx) error {
-	books, error := utils.LoadBooksFromCSV(utils.UserBooksFilePath)
-	user := ctx.Locals("user").(*utils.Claims)
-	if error != nil {
-		log.Println(error)
-		return ctx.JSON(utils.HttpResponse(false, "Error loading books.", fiber.Map{}))
+	var books []models.Book
+	result := db.Db.Find(&books)
+	if result.Error != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(utils.HttpResponse(false, "Error retrieving books.", nil))
 	}
-	if user.UserType == "admin" {
-		adminBooks, error2 := utils.LoadBooksFromCSV(utils.AdminBooksFilePath)
-		if error2 != nil {
-			log.Println(error2)
-			return ctx.JSON(utils.HttpResponse(false, "Error loading admin books.", fiber.Map{}))
-		}
-		books = append(books, adminBooks...)
-	}
+
 	return ctx.JSON(utils.HttpResponse(true, "Books retrieved successfully.", books))
 }
 
@@ -43,48 +38,66 @@ func AddBook(ctx *fiber.Ctx) error {
 		}
 	}
 
-	// Determine the correct file path based on user role
-	filePath := utils.UserBooksFilePath
-
 	// Check if the book already exists
-	exists, err := utils.BookExists(filePath, book.Name)
+	err := db.Db.Create(&book).Error
 	if err != nil {
-    log.Println(err)
-		return ctx.Status(fiber.StatusInternalServerError).JSON(utils.HttpResponse(false, "Failed to check if book exists.", nil))
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			log.Println(pgErr.Message)
+			log.Println(pgErr.Code)
+			if pgErr.Code == "23505" {
+				return ctx.Status(fiber.StatusConflict).JSON(utils.HttpResponse(false, "Book already exists.", nil))
+			} else {
+				return ctx.Status(fiber.StatusInternalServerError).JSON(utils.HttpResponse(false, err.Error(), nil))
+			}
+		}
 	}
-	if exists {
-		return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, "Book already exists.", nil))
+	return ctx.JSON(utils.HttpResponse(true, "Book added successfully.", book))
+}
+
+func UpdateBook(ctx *fiber.Ctx) error {
+	bookID := ctx.Params("id")
+	if bookID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, "Book ID is required.", nil))
 	}
 
-	// Add the book to the CSV file
-	err = utils.AddBookToCSV(filePath, *book)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(utils.HttpResponse(false, "Failed to add the book.", err))
+	// Parse the updated book data
+	var updateData models.Book
+	if err := ctx.BodyParser(&updateData); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, err.Error(), nil))
 	}
 
-	return ctx.JSON(utils.HttpResponse(true, "Book added successfully.", nil))
+	// Find the book by ID and update it
+	var book models.Book
+	result := db.Db.First(&book, bookID)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return ctx.Status(fiber.StatusNotFound).JSON(utils.HttpResponse(false, "Book not found.", nil))
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(utils.HttpResponse(false, "Error finding book.", nil))
+	}
+
+	// Perform the update
+	db.Db.Model(&book).Updates(updateData)
+
+	return ctx.JSON(utils.HttpResponse(true, "Book updated successfully.", book))
 }
 
 func DeleteBook(ctx *fiber.Ctx) error {
-	bookName := ctx.Params("name") // Assuming the book name is passed as a URL parameter
-	if bookName == "" {
-		return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, "Book name is required.", nil))
-	}
-	bookName = strings.Replace(bookName, "%20", " ", -1) // Replace %20 with space (if any)
-
-	exists, err := utils.BookExists(utils.UserBooksFilePath, bookName)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(utils.HttpResponse(false, "Failed to check if book exists.", nil))
-	}
-	if !exists {
-		return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, "Book does not exist", nil))
+	bookID := ctx.Params("id")
+	if bookID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(utils.HttpResponse(false, "Book ID is required.", nil))
 	}
 
-	// Determine the correct file path based on user role
-	// Delete the book from the CSV file
-	delerr := utils.DeleteBook(utils.UserBooksFilePath, bookName)
-	if delerr != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(utils.HttpResponse(false, "Failed to delete the book.", nil))
+	// Attempt to delete the book by ID
+	result := db.Db.Delete(&models.Book{}, bookID)
+	if result.Error != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(utils.HttpResponse(false, "Error deleting book.", nil))
+	}
+
+	// Check if any rows were affected (i.e., if the book existed)
+	if result.RowsAffected == 0 {
+		return ctx.Status(fiber.StatusNotFound).JSON(utils.HttpResponse(false, "Book not found.", nil))
 	}
 
 	return ctx.JSON(utils.HttpResponse(true, "Book deleted successfully.", nil))

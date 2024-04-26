@@ -1,15 +1,18 @@
 package models
 
 import (
-	"time"
 	"github.com/go-playground/validator/v10"
+	"time"
 )
 
 // Struct to hold book information
 type Book struct {
-	Name            string `json:"name" validate:"required"`
-	Author          string `json:"author" validate:"required"`
-	PublicationYear string `json:"publication_year" validate:"required,year"`
+	ID              uint      `json:"id"`
+	Name            string    `json:"name" validate:"required"`
+	Author          string    `json:"author" validate:"required"`
+	PublicationYear string    `json:"publication_year" validate:"required,year"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 // Custom validation function for the publication year.
@@ -26,4 +29,3 @@ func YearValidation(fl validator.FieldLevel) bool {
 	}
 	return false
 }
-

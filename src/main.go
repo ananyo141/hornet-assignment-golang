@@ -1,13 +1,14 @@
 package main
 
 import (
-	"log"
-	"os"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 
+	"log"
+	"os"
+
+	"backend/src/db"
 	"backend/src/middlewares"
 	"backend/src/routes"
 	"backend/src/utils"
@@ -21,8 +22,16 @@ func init() {
 		log.Println("No .env file loaded, reading from system environment variables, recheck all the environment variables are set.")
 	}
 	utils.JwtSecret = []byte(os.Getenv("JWT_KEY"))
-	utils.AdminBooksFilePath = os.Getenv("ADMIN_FILE")
-	utils.UserBooksFilePath = os.Getenv("REGULAR_FILE")
+
+	_db, err := db.ConnectDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.Db = _db
+	if err := db.MigrateDB(db.Db); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("Database initialized")
 }
 
 func main() {
