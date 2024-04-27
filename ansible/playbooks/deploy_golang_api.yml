@@ -1,0 +1,92 @@
+---
+- name: Deploy GoLang API to Ubuntu Server with Docker
+  hosts: azure_servers
+  become: true
+
+  vars:
+    repo_url: "https://github.com/ananyo141/hornet-assignment-golang.git"
+    project_dir: "/opt/golang-backend"
+    server_name: "20.193.149.105" # server ip
+
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Install required system packages
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - git
+
+    - name: Add Docker’s official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Set up the stable Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable"
+        state: present
+
+    - name: Update apt packages with new repository
+      apt:
+        update_cache: yes
+
+    - name: Install Docker CE and Nginx
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker-ce
+        - nginx
+
+    - name: Clone the GoLang API repository
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ project_dir }}"
+        clone: yes
+        update: yes
+
+    - name: Run Docker Compose to deploy the GoLang API
+      command:
+        cmd: docker compose up -d
+        chdir: "{{ project_dir }}"
+
+    - name: Remove the default Nginx site configuration
+      file:
+        path: "/etc/nginx/sites-enabled/default"
+        state: absent
+
+    - name: Create Nginx site configuration for GoLang API
+      copy:
+        dest: "/etc/nginx/sites-available/golang_api"
+        content: |
+          server {
+            listen 80;
+            server_name {{ server_name }};
+
+            location / {
+              proxy_pass http://localhost:3000;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+            }
+          }
+
+    - name: Enable the Nginx site configuration
+      command: ln -s /etc/nginx/sites-available/golang_api /etc/nginx/sites-enabled/golang_api
+      args:
+        creates: /etc/nginx/sites-enabled/golang_api
+
+    - name: Reload Nginx to apply the new configuration
+      systemd:
+        name: nginx
+        state: reloaded

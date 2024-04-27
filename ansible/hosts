@@ -1,0 +1,2 @@
+[azure_servers]
+20.193.149.105 ansible_user=ananyo ansible_ssh_private_key_file=./ssh_key.pem

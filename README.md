@@ -44,8 +44,8 @@ The project is organized as follows:
 - Ensure Go is installed (version 1.22 or newer).
 - Check docker is available (optional, if running via `docker compose`)
 
-
 ### Installation Steps
+
 #### With `docker compose` (Recommended):
 
 1. Go to project root and invoke
@@ -55,19 +55,23 @@ $ docker compose up -d
 ```
 
 #### Manual
+
 1. Clone the repository to your local machine:
 
 ```bash
 $ git clone https://github.com/ananyo141/scalex-assignment.git
 ```
+
 or copy from this repo.
 
 2. Create .env file with `JWT_KEY` variable defined, or just copy `.env.docker` file
+
 ```bash
 $ cp .env.docker .env
 ```
 
 3. Build and run the application
+
 ```bash
 $ go build -o main -ldflags="-s -w" ./src
 $ ./main
@@ -75,5 +79,16 @@ $ ./main
 
 4. Import `postman_collection.json` given in the project root to test the endpoints.
 
-*NOTE:* Make sure to setup PostgreSQL and it's .env variable while setting up
+_NOTE:_ Make sure to setup PostgreSQL and it's .env variable while setting up
 manually.
+
+## Using Ansible
+
+The Ansible playbook is written for an automated deploy to remote server using
+docker and nginx. Just run this command on the terminal
+
+```bash
+$ ansible-playbook playbooks/deploy_golang_api.yml -i hosts
+```
+
+Make sure `ssh_key.pem` private key is present in `ansible/ssh_key.pem`.
