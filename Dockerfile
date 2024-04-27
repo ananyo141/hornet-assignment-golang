@@ -20,7 +20,6 @@ WORKDIR /app
 
 # Copy only the necessary files from the build stage
 COPY --from=build /app/main /app/.env.docker ./
-COPY ./src/data ./src/data
 
 # Expose the port that your GoFiber app will run on
 EXPOSE 3000
