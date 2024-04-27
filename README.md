@@ -59,7 +59,7 @@ $ docker compose up -d
 1. Clone the repository to your local machine:
 
 ```bash
-$ git clone https://github.com/ananyo141/scalex-assignment.git
+$ git clone https://github.com/ananyo141/hornet-assignment-golang.git
 ```
 
 or copy from this repo.
